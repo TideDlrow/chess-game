@@ -1,13 +1,18 @@
 <template>
-
+  <div id="login">
+    <h1>Login</h1>
+  </div>
 </template>
 
 <script>
 export default {
-  name: 'Login.vue'
+  name: 'Login'
 }
 </script>
 
 <style scoped>
-
+#login {
+  height: 100%;
+  width: 100%;
+}
 </style>

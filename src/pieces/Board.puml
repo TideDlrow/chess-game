@@ -1,0 +1,40 @@
+@startuml
+class Board{
+    ROW_NUM=10
+    COL_NUM=9
+    margin//内边距
+    canvasWidth//画布的宽
+    canvasHeight//画布的高
+    chessArray//棋子的二维数组
+    ctx//canvas上下文
+    camp//玩家阵营，该属性决定红色或黑色棋子绘制在棋盘下方
+    selectedPieceX //被选中棋子的坐标 未选中时为-1
+    selectedPieceY //被选中棋子的坐标 未选中时为-1
+    tipPoint //提示点的图片
+    tipPointSideLength //提示点的图片的边长
+
+    getLeftTopCoordinate()//获取棋盘左上角的像素坐标
+    getRowLineSpace()//获取行间距
+    getColLineSpace()//获取列间距
+    getBoardCoordinate(px_X,px_Y)//根据像素坐标获取棋盘坐标
+    setCanvasCTX(canvasCTX)//设置canvas的上下文
+    drawBoard()//绘制棋盘
+    drawTipPoint()//绘制棋子的可行提示点
+
+    movePiece(x1,y1,x2,y2)//把棋子从x1,y1移动到x2,y2。坐标为棋盘坐标非像素坐标
+
+    hiddenPiece(x,y)//隐藏指定坐标的棋子
+
+}
+
+class Piece{
+    BoardCoordinateX
+    BoardCoordinateY
+    img // Image类型
+    lengthOfSide //棋子图片的边长
+    camp //棋子所属的阵营
+
+    drawPiece(ctx,pixel_X,pixel_Y)//把棋子绘制到指定的像素坐标上
+    drawOutLineBorder()//绘制选中棋子时的外框
+}
+@enduml
