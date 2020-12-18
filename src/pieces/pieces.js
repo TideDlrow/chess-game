@@ -21,13 +21,11 @@ class Piece {
    */
   getOuterBorderImg () {
     const { camp } = this
-    const img = new Image()
     if (camp) {
-      img.src = pieceImg['b_box']
+      return pieceImg['b_box']
     } else {
-      img.src = pieceImg['r_box']
+      return pieceImg['r_box']
     }
-    return img
   }
 
   /**
@@ -54,7 +52,7 @@ class Piece {
    * @param {number} centerPixelY 棋子中心坐标
    */
   drawOuterBorder (ctx, centerPixelX, centerPixelY) {
-    const outerBorderImg = this.outerBorder
+    const outerBorderImg = this.getOuterBorderImg()
     if (outerBorderImg === null || outerBorderImg === undefined) {
       throw '请先设置棋子外框的图片'
     }

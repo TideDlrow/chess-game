@@ -33,10 +33,10 @@ class Board {
     this.ctx = null
     //玩家阵营。true代表黑方，false代表红方。该属性决定红色或黑色棋子绘制在棋盘下方
     this.camp = false
-    //被选中棋子的坐标 未选中时为-1
-    this.selectedPieceX = 0
-    //被选中棋子的坐标 未选中时为-1
-    this.selectedPieceY = 0
+    //被选中棋子的棋盘坐标 未选中时为-1
+    this.selectedPieceX = -1
+    //被选中棋子的棋盘坐标 未选中时为-1
+    this.selectedPieceY = -1
     //提示点的图片
     this.tipPointImg = null
     //提示点的图片的边长
@@ -92,7 +92,8 @@ class Board {
   getBoardCoordinateByPixel (pixelX, pixelY) {
     const {
       canvasWidth,
-      canvasHeight
+      canvasHeight,
+      margin
     } = this
     //若点在canvas画布外则忽略
     if (pixelX >= canvasWidth || pixelX <= 0 || pixelY >= canvasHeight || pixelY <= 0) {
@@ -104,12 +105,15 @@ class Board {
     const rowEffectiveRange = colLineSpace / 3
     //纵向有效范围。即点纵向的colEffectiveRange像素范围内都属于该点
     const colEffectiveRange = rowLineSpace / 3
+    //
+    pixelX -= margin
+    pixelY -= margin
     //转换后的棋盘坐标
-    const BoardCoordinateX = _.floor((pixelX + rowEffectiveRange) / rowLineSpace)
-    const BoardCoordinateY = _.floor((pixelY + colEffectiveRange) / colLineSpace)
+    const boardCoordinateX = _.floor((pixelX + rowEffectiveRange) / rowLineSpace) + 1
+    const boardCoordinateY = _.floor((pixelY + colEffectiveRange) / colLineSpace) + 1
     return {
-      BoardCoordinateX,
-      BoardCoordinateY
+      boardCoordinateX,
+      boardCoordinateY
     }
   }
 
@@ -131,6 +135,35 @@ class Board {
   }
 
   /**
+   * 根据棋盘坐标获取对应的棋子
+   * @param {number} boardCoordinateX
+   * @param {number} boardCoordinateY
+   * @return {Piece}
+   */
+  getPieceByBoardCoordinate (boardCoordinateX, boardCoordinateY) {
+    return this.pieceArray[boardCoordinateY - 1][boardCoordinateX - 1]
+  }
+
+  /**
+   * 把棋子放到指定坐标
+   * @param {number} boardCoordinateX
+   * @param {number} boardCoordinateY
+   * @param {Piece} piece
+   */
+  setPieceByBoardCoordinate (boardCoordinateX, boardCoordinateY, piece) {
+    this.pieceArray[boardCoordinateY - 1][boardCoordinateX - 1] = piece
+  }
+
+  /**
+   * 删除指定坐标的棋子。用于棋子离开原本位置或棋子被吃时
+   * @param {number} boardCoordinateX
+   * @param {number} boardCoordinateY
+   */
+  deletePieceByBoardCoordinate (boardCoordinateX, boardCoordinateY) {
+    this.pieceArray[boardCoordinateY - 1][boardCoordinateX - 1] = null
+  }
+
+  /**
    * 设置canvas的上下文
    * @param {CanvasRenderingContext2D} ctx
    */
@@ -144,6 +177,17 @@ class Board {
       throw '请先设置canvas上下文'
     }
     return ctx
+  }
+
+  /**
+   * 是否选中了棋子
+   */
+  isSelected () {
+    const {
+      selectedPieceX,
+      selectedPieceY
+    } = this
+    return selectedPieceX > -1 && selectedPieceY > -1
   }
 
   /**
@@ -310,6 +354,38 @@ class Board {
   }
 
   /**
+   * 画出指定位置棋子的选中外框
+   * @param pixelX
+   * @param pixelY
+   */
+  drawPieceOuterBorder (pixelX, pixelY) {
+    const {
+      boardCoordinateX,
+      boardCoordinateY
+    } = this.getBoardCoordinateByPixel(pixelX, pixelY)
+    const piece = this.getPieceByBoardCoordinate(boardCoordinateX, boardCoordinateY)
+    const ctx = this.getCanvasCTX()
+    //如果对应的位置存在棋子，则画出外框
+    if (piece) {
+      //设置一下被选中棋子的棋盘坐标
+      this.selectedPieceX = boardCoordinateX
+      this.selectedPieceY = boardCoordinateY
+      const {
+        pixelX: pixelX2,
+        pixelY: pixelY2
+      } = this.getPixelByBoardCoordinate(boardCoordinateX, boardCoordinateY)
+      //先重绘，目的是为了把其他棋子的外框消除
+      this.redraw()
+      piece.drawOuterBorder(ctx, pixelX2, pixelY2)
+    } else {
+      this.selectedPieceX = -1
+      this.selectedPieceY = -1
+      //如果对应的位置不存在棋子，或者点击的不是棋子，则取消所有棋子的外框
+      this.redraw()
+    }
+  }
+
+  /**
    * 绘制棋子的可行提示点
    */
   drawTipPoint () {
@@ -324,7 +400,37 @@ class Board {
    * @param x2
    * @param y2
    */
-  movePiece (x1, y1, x2, y2) {
+  movePieceByBoardCoordinate (x1, y1, x2, y2) {
+    const piece = this.getPieceByBoardCoordinate(x1, y1)
+    if (piece === null) {
+      throw 'piece is not exist'
+    }
+    const {
+      pixelX: pixelX1,
+      pixelY: pixelY1
+    } = this.getPixelByBoardCoordinate(x1, y1)
+    const {
+      pixelX: pixelX2,
+      pixelY: pixelY2
+    } = this.getPixelByBoardCoordinate(x1, y1)
+    //先将移动的棋子从棋盘中删除(方便重新绘制)
+    this.deletePieceByBoardCoordinate(x1, y1)
+    // this.redraw()
+    //棋子慢慢移动到指定位置()
+
+    //将棋子重新添加到棋盘中
+    this.setPieceByBoardCoordinate(x2, y2, piece)
+    this.redraw()
+  }
+
+  /**
+   * 根据像素坐标移动棋子
+   * @param x1
+   * @param y1
+   * @param x2
+   * @param y2
+   */
+  movePieceByPixel (x1, y1, x2, y2) {
 
   }
 

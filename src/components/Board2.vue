@@ -1,12 +1,12 @@
 <template>
   <div class="board">
-    <canvas id="canvas" width="800" height="900"></canvas>
+    <canvas id="canvas" width="800" height="900" @click="clickCanvas"></canvas>
   </div>
 </template>
 
 <script>
 import Board from '@/pieces/Board2'
-import {RookR} from '@/pieces/pieces'
+import { RookR } from '@/pieces/pieces'
 
 export default {
   name: 'Board',
@@ -89,7 +89,16 @@ export default {
       this.board.canvasHeight = height
       this.board.canvasWidth = width
       this.board.redraw()
+    },
+    clickCanvas (event) {
+      const {
+        offsetX,
+        offsetY
+      } = event
+      console.log(offsetX, offsetY)
+      this.board.drawPieceOuterBorder(offsetX, offsetY)
     }
+
   }
 }
 </script>
