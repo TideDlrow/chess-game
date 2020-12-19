@@ -1,4 +1,5 @@
 import { pieceImg } from '@/assets'
+import fa from 'element-ui/src/locale/lang/fa'
 
 class Piece {
   constructor () {
@@ -62,9 +63,57 @@ class Piece {
 }
 
 /**
+ * 士
+ */
+class Assistants extends Piece {
+  /**
+   * 验证棋子能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const piece = pieceArray[b_y2 - 1][b_x2 - 1]
+    const { camp } = this
+    //  符合3个条件才能移动到指定位置
+    //  1. 目标位置没有棋子或是敌方棋子
+    //  2. 目标位置在棋盘规定范围内
+    //  3. 士 一定是斜向移动，故需要判断原始和目标位置的x,y差值是否为1
+    return !!((piece === null || piece.camp !== camp) &&
+      this.isEffectiveRange(b_x2, b_y2, playerCamp) &&
+      (Math.abs(b_x2 - b_x1) === 1 && Math.abs(b_y2 - b_y1) === 1))
+
+  }
+
+  /**
+   * 判断士处于棋盘的规定范围
+   * @param x
+   * @param y
+   * @param playerCamp
+   */
+  isEffectiveRange (x, y, playerCamp = false) {
+    const { camp } = this
+    //先判断x坐标是否在4~6之间 inRange的参数是左闭右开的区间
+    if (_.inRange(x, 4, 7)) {
+      if (playerCamp === camp) {
+        //如果棋子在棋盘下方，则判断y坐标是否在8~10之间
+        return !!_.inRange(y, 8, 11)
+      } else {
+        //如果棋子在棋盘上方方，则判断y坐标是否在1~3之间
+        return !!_.inRange(y, 1, 4)
+      }
+    }
+  }
+}
+
+/**
  * 黑士
  */
-class AssistantsB extends Piece {
+class AssistantsB extends Assistants {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_s']
@@ -75,17 +124,66 @@ class AssistantsB extends Piece {
 /**
  * 红士
  */
-class AssistantsR extends Piece {
+class AssistantsR extends Assistants {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_s']
   }
 }
 
+class Bishop extends Piece {
+  /**
+   * 判断棋子处于棋盘的规定范围
+   * @param x
+   * @param y
+   * @param playerCamp
+   */
+  isEffectiveRange (x, y, playerCamp = false) {
+    const { camp } = this
+    //先判断x坐标是否在1~9之间 inRange的参数是左闭右开的区间
+    if (_.inRange(x, 1, 10)) {
+      if (playerCamp === camp) {
+        //如果棋子在棋盘下方，则判断y坐标是否在6~10之间
+        return !!_.inRange(y, 6, 11)
+      } else {
+        //如果棋子在棋盘上方方，则判断y坐标是否在1~5之间
+        return !!_.inRange(y, 1, 6)
+      }
+    }
+  }
+
+  /**
+   * 验证象能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const piece = pieceArray[b_y2 - 1][b_x2 - 1]
+    const { camp } = this
+    //  符合3个条件才能移动到指定位置
+    //  1. 目标位置没有棋子或是敌方棋子
+    //  2. 目标位置在棋盘规定范围内
+    //  3. 象 一定是斜向移动，故需要判断原始和目标位置的x,y差值是否为2
+    //  4. 原位置与目标位置中心没有其他棋子
+    return !!(
+      (piece === null || piece.camp !== camp) &&
+      this.isEffectiveRange(b_x2, b_y2, playerCamp) &&
+      (Math.abs(b_x2 - b_x1) === 2 && Math.abs(b_y2 - b_y1) === 2) &&
+      pieceArray[_.mean([b_y1, b_y2]) - 1][_.mean([b_x1, b_x2]) - 1] === null
+    )
+
+  }
+}
+
 /**
  * 黑象
  */
-class BishopB extends Piece {
+class BishopB extends Bishop {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_x']
@@ -96,11 +194,63 @@ class BishopB extends Piece {
 /**
  * 红象
  */
-class BishopR extends Piece {
+class BishopR extends Bishop {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_x']
   }
+}
+
+class Cannon extends Piece {
+  /**
+   * 验证炮能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+
+  }
+
+  /**
+   * 获取从x1,y1到x2,y2的棋子数量，不包括这两个点。必须是一行或是一列
+   * @param x1
+   * @param y1
+   * @param x2
+   * @param y2
+   * @param pieceArray
+   */
+  getPieceNum (x1, y1, x2, y2, pieceArray) {
+    if ((x2 - x1) * (y2 - y1) !== 0) {
+      throw 'Two coordinates given do not belong to one row or one column'
+    }
+    let count = 0
+    //列
+    if (x1 === x2) {
+      let begin = y1 < y2 ? y1 : y2
+      let end = y1 > y2 ? y1 : y2
+      for (let i = begin; i < end; i++) {
+        if (pieceArray[i][x1]) {
+          ++count
+        }
+      }
+    } else {
+      //行
+      let begin = x1 < x2 ? x1 : x2
+      let end = x1 > x2 ? x1 : x2
+      for (let i = begin; i < end; i++) {
+        if (pieceArray[y1][i]) {
+          ++count
+        }
+      }
+    }
+    return count
+  }
+
 }
 
 /**

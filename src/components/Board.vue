@@ -8,7 +8,6 @@
 
 <script>
 import { pieceImg } from '@/assets'
-import { B_C } from '@/pieces/pieces'
 
 //共9列
 const COL_NUM = 9
@@ -171,23 +170,23 @@ export default {
       //棋子(一个正方形)的边长为行间距的2/3
       const pieceDiameter = rowLineSpace / 3 * 2
       // ctx.drawImage(pieceImg['b_c'], leftTopX - pieceDiameter / 2, leftTopY - pieceDiameter / 2, pieceDiameter, pieceDiameter)
-      B_C.lengthOfSide = pieceDiameter
-      B_C.draw(ctx, leftTopX, leftTopY)
-
-      const nextX = leftTopX
-      const nextY = leftTopY + 4 * rowLineSpace
-      //每次移动5px 共移动的次数
-      const stepNum = (nextY - leftTopY) / 5
-      let i = 0
-      const s = setInterval(() => {
-        ctx.clearRect(0, 0, width, height)
-        this.drawBoard()
-        B_C.draw(ctx, leftTopX, leftTopY + 5 * i)
-        ++i
-        if (i >= stepNum) {
-          clearInterval(s)
-        }
-      }, 20)
+      // B_C.lengthOfSide = pieceDiameter
+      // B_C.draw(ctx, leftTopX, leftTopY)
+      //
+      // const nextX = leftTopX
+      // const nextY = leftTopY + 4 * rowLineSpace
+      // //每次移动5px 共移动的次数
+      // const stepNum = (nextY - leftTopY) / 5
+      // let i = 0
+      // const s = setInterval(() => {
+      //   ctx.clearRect(0, 0, width, height)
+      //   this.drawBoard()
+      //   B_C.draw(ctx, leftTopX, leftTopY + 5 * i)
+      //   ++i
+      //   if (i >= stepNum) {
+      //     clearInterval(s)
+      //   }
+      // }, 20)
 
     }
   }

@@ -14,6 +14,7 @@ import {
   RookR,
   RookB
 } from '@/pieces/pieces'
+import Message from 'element-ui/packages/message/src/main'
 
 class Board {
   constructor () {
@@ -188,6 +189,14 @@ class Board {
       selectedPieceY
     } = this
     return selectedPieceX > -1 && selectedPieceY > -1
+  }
+
+  /**
+   * 取消选中的棋子
+   */
+  cancelSelected () {
+    this.selectedPieceX = -1
+    this.selectedPieceY = -1
   }
 
   /**
@@ -402,6 +411,7 @@ class Board {
    */
   movePieceByBoardCoordinate (x1, y1, x2, y2) {
     const piece = this.getPieceByBoardCoordinate(x1, y1)
+    const { camp: playerCamp } = this
     if (piece === null) {
       throw 'piece is not exist'
     }
@@ -413,14 +423,55 @@ class Board {
       pixelX: pixelX2,
       pixelY: pixelY2
     } = this.getPixelByBoardCoordinate(x1, y1)
+
+    //如果不能移动到指定位置
+    if (!piece.verify(x1, y1, x2, y2, this.pieceArray, playerCamp)) {
+      const piece2 = this.getPieceByBoardCoordinate(x2, y2)
+      //如果目标位置存在棋子，则选中新棋子，画出外框
+      if (piece2) {
+        const {
+          pixelX,
+          pixelY
+        } = this.getPixelByBoardCoordinate(x2, y2)
+        this.drawPieceOuterBorder(pixelX, pixelY)
+      } else {
+        //不存在棋子，则说明该目标位置不符合移动规则。取消选中
+        // Message.error('不能移动到该位置')
+        this.cancelSelected()
+        this.redraw()
+      }
+      return
+    }
     //先将移动的棋子从棋盘中删除(方便重新绘制)
     this.deletePieceByBoardCoordinate(x1, y1)
     // this.redraw()
-    //棋子慢慢移动到指定位置()
+    //TODO 棋子慢慢移动到指定位置
 
     //将棋子重新添加到棋盘中
     this.setPieceByBoardCoordinate(x2, y2, piece)
     this.redraw()
+    //棋子移动后取消选择
+    this.cancelSelected()
+  }
+
+  /**
+   * 把棋子移动到指定的地方
+   * @param targetX 指定像素坐标
+   * @param targetY 指定像素坐标
+   */
+  movePieceToPixel (targetX, targetY) {
+    if (!this.isSelected()) {
+      throw 'piece is not selected'
+    }
+    const {
+      selectedPieceX,
+      selectedPieceY
+    } = this
+    const {
+      pixelX,
+      pixelY
+    } = this.getPixelByBoardCoordinate(selectedPieceX, selectedPieceY)
+    this.movePieceByPixel(pixelX, pixelY, targetX, targetY)
   }
 
   /**
@@ -431,6 +482,15 @@ class Board {
    * @param y2
    */
   movePieceByPixel (x1, y1, x2, y2) {
+    const {
+      boardCoordinateX: b_x1,
+      boardCoordinateY: b_y1
+    } = this.getBoardCoordinateByPixel(x1, y1)
+    const {
+      boardCoordinateX: b_x2,
+      boardCoordinateY: b_y2
+    } = this.getBoardCoordinateByPixel(x2, y2)
+    this.movePieceByBoardCoordinate(b_x1, b_y1, b_x2, b_y2)
 
   }
 

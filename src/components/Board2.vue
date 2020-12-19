@@ -95,8 +95,15 @@ export default {
         offsetX,
         offsetY
       } = event
-      console.log(offsetX, offsetY)
-      this.board.drawPieceOuterBorder(offsetX, offsetY)
+      // console.log(offsetX, offsetY)
+      const isSelected = this.board.isSelected()
+      //如果已经选中了一个棋子
+      if (isSelected) {
+        this.board.movePieceToPixel(offsetX, offsetY)
+      } else {
+        //若没有选中棋子，则画出选中棋子的外框
+        this.board.drawPieceOuterBorder(offsetX, offsetY)
+      }
     }
 
   }
