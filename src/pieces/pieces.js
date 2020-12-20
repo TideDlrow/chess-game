@@ -1,5 +1,5 @@
 import { pieceImg } from '@/assets'
-import fa from 'element-ui/src/locale/lang/fa'
+import { getPieceNum, getPieceByPieceArray, isCoordinateLine, isOneStep } from '@/until/content'
 
 class Piece {
   constructor () {
@@ -77,7 +77,7 @@ class Assistants extends Piece {
    *
    */
   verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
-    const piece = pieceArray[b_y2 - 1][b_x2 - 1]
+    const piece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
     const { camp } = this
     //  符合3个条件才能移动到指定位置
     //  1. 目标位置没有棋子或是敌方棋子
@@ -91,20 +91,20 @@ class Assistants extends Piece {
 
   /**
    * 判断士处于棋盘的规定范围
-   * @param x
-   * @param y
+   * @param b_x
+   * @param b_y
    * @param playerCamp
    */
-  isEffectiveRange (x, y, playerCamp = false) {
+  isEffectiveRange (b_x, b_y, playerCamp = false) {
     const { camp } = this
     //先判断x坐标是否在4~6之间 inRange的参数是左闭右开的区间
-    if (_.inRange(x, 4, 7)) {
+    if (_.inRange(b_x, 4, 7)) {
       if (playerCamp === camp) {
         //如果棋子在棋盘下方，则判断y坐标是否在8~10之间
-        return !!_.inRange(y, 8, 11)
+        return !!_.inRange(b_y, 8, 11)
       } else {
         //如果棋子在棋盘上方方，则判断y坐标是否在1~3之间
-        return !!_.inRange(y, 1, 4)
+        return !!_.inRange(b_y, 1, 4)
       }
     }
   }
@@ -131,23 +131,26 @@ class AssistantsR extends Assistants {
   }
 }
 
+/**
+ * 象
+ */
 class Bishop extends Piece {
   /**
    * 判断棋子处于棋盘的规定范围
-   * @param x
-   * @param y
+   * @param b_x
+   * @param b_y
    * @param playerCamp
    */
-  isEffectiveRange (x, y, playerCamp = false) {
+  isEffectiveRange (b_x, b_y, playerCamp = false) {
     const { camp } = this
     //先判断x坐标是否在1~9之间 inRange的参数是左闭右开的区间
-    if (_.inRange(x, 1, 10)) {
+    if (_.inRange(b_x, 1, 10)) {
       if (playerCamp === camp) {
         //如果棋子在棋盘下方，则判断y坐标是否在6~10之间
-        return !!_.inRange(y, 6, 11)
+        return !!_.inRange(b_y, 6, 11)
       } else {
         //如果棋子在棋盘上方方，则判断y坐标是否在1~5之间
-        return !!_.inRange(y, 1, 6)
+        return !!_.inRange(b_y, 1, 6)
       }
     }
   }
@@ -163,7 +166,7 @@ class Bishop extends Piece {
    *
    */
   verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
-    const piece = pieceArray[b_y2 - 1][b_x2 - 1]
+    const piece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
     const { camp } = this
     //  符合3个条件才能移动到指定位置
     //  1. 目标位置没有棋子或是敌方棋子
@@ -174,7 +177,7 @@ class Bishop extends Piece {
       (piece === null || piece.camp !== camp) &&
       this.isEffectiveRange(b_x2, b_y2, playerCamp) &&
       (Math.abs(b_x2 - b_x1) === 2 && Math.abs(b_y2 - b_y1) === 2) &&
-      pieceArray[_.mean([b_y1, b_y2]) - 1][_.mean([b_x1, b_x2]) - 1] === null
+      getPieceByPieceArray(pieceArray, _.mean([b_x1, b_x2]), _.mean([b_y1, b_y2])) === null
     )
 
   }
@@ -213,50 +216,30 @@ class Cannon extends Piece {
    *
    */
   verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
-
-  }
-
-  /**
-   * 获取从x1,y1到x2,y2的棋子数量，不包括这两个点。必须是一行或是一列
-   * @param x1
-   * @param y1
-   * @param x2
-   * @param y2
-   * @param pieceArray
-   */
-  getPieceNum (x1, y1, x2, y2, pieceArray) {
-    if ((x2 - x1) * (y2 - y1) !== 0) {
-      throw 'Two coordinates given do not belong to one row or one column'
+    //先把非直线移动的排除
+    if (!isCoordinateLine(b_x1, b_y1, b_x2, b_y2)) {
+      return false
     }
-    let count = 0
-    //列
-    if (x1 === x2) {
-      let begin = y1 < y2 ? y1 : y2
-      let end = y1 > y2 ? y1 : y2
-      for (let i = begin; i < end; i++) {
-        if (pieceArray[i][x1]) {
-          ++count
-        }
-      }
-    } else {
-      //行
-      let begin = x1 < x2 ? x1 : x2
-      let end = x1 > x2 ? x1 : x2
-      for (let i = begin; i < end; i++) {
-        if (pieceArray[y1][i]) {
-          ++count
-        }
-      }
+    const { camp } = this
+    const pieceNum = getPieceNum(b_x1, b_y1, b_x2, b_y2, pieceArray)
+    const targetPiece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
+    //目标位置没有棋子，且原位置与目标位置之间也没有棋子
+    if (targetPiece === null && pieceNum === 0) {
+      return true
+    } else if (targetPiece === null && pieceNum !== 0) {
+      //这里是为了短路下面的条件
+      return false
+    } else if (targetPiece.camp !== camp && pieceNum === 1) {
+      //目标位置为敌方棋子，且原位置与目标位置中间只有有一个棋子
+      return true
     }
-    return count
   }
-
 }
 
 /**
  * 黑炮
  */
-class CannonB extends Piece {
+class CannonB extends Cannon {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_p']
@@ -267,7 +250,7 @@ class CannonB extends Piece {
 /**
  * 红炮
  */
-class CannonR extends Piece {
+class CannonR extends Cannon {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_p']
@@ -275,9 +258,76 @@ class CannonR extends Piece {
 }
 
 /**
+ * 将/帅
+ */
+class King extends Piece {
+  /**
+   * 判断士处于棋盘的规定范围
+   * @param b_x
+   * @param b_y
+   * @param playerCamp 玩家阵营 false表示红方
+   */
+  isEffectiveRange (b_x, b_y, playerCamp = false) {
+    const { camp } = this
+    //先判断x坐标是否在4~6之间 inRange的参数是左闭右开的区间
+    if (_.inRange(b_x, 4, 7)) {
+      if (playerCamp === camp) {
+        //如果棋子在棋盘下方，则判断y坐标是否在8~10之间
+        return !!_.inRange(b_y, 8, 11)
+      } else {
+        //如果棋子在棋盘上方方，则判断y坐标是否在1~3之间
+        return !!_.inRange(b_y, 1, 4)
+      }
+    }
+  }
+
+  /**
+   * 验证将/帅能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const { camp } = this
+    const targetPiece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
+    //查找另一个将/帅
+    let anotherKingX = -1, anotherKingY = -1
+    for (let i = 0; i < pieceArray.length; ++i) {
+      for (let j = 0; j < pieceArray[i].length; ++j) {
+        const piece = pieceArray[i][j]
+        if (piece instanceof King && piece.camp !== camp) {
+          anotherKingX = j + 1
+          anotherKingY = i + 1
+          break
+        }
+      }
+    }
+
+    return !!(
+      //没有超过规定范围
+      this.isEffectiveRange(b_x2, b_y2, playerCamp) &&
+      //走的是直线
+      isCoordinateLine(b_x1, b_y1, b_x2, b_y2) &&
+      //仅走了一步
+      isOneStep(b_x1, b_y1, b_x2, b_y2) &&
+      //目标位置和另一个将/帅之间如果是直线，则要判断是否存在其他棋子，如果不是直线就不用考虑将/帅是否存在棋子
+      (isCoordinateLine(b_x2, b_y2, anotherKingX, anotherKingY) ?
+        getPieceNum(b_x2, b_y2, anotherKingX, anotherKingY, pieceArray) > 0 : true) &&
+      //目标位置没有棋子，或为敌方棋子
+      (targetPiece === null || targetPiece.camp !== camp)
+    )
+
+  }
+}
+
+/**
  * 黑将
  */
-class KingB extends Piece {
+class KingB extends King {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_j']
@@ -288,7 +338,7 @@ class KingB extends Piece {
 /**
  * 红帅
  */
-class KingR extends Piece {
+class KingR extends King {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_j']
@@ -296,9 +346,58 @@ class KingR extends Piece {
 }
 
 /**
+ * 马
+ */
+class Knight extends Piece {
+  /**
+   * 验证马能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const { camp } = this
+    const targetPiece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
+    //马脚点
+    let blockPointX = -1, blockPointY = -1
+    if ((b_x2 - b_x1) === 2 && Math.abs(b_y2 - b_y1) === 1) {
+      //2点和4点方向是同一个马脚
+      blockPointX = b_x1 + 1
+      blockPointY = b_y1
+    } else if ((b_x1 - b_x2) === 2 && Math.abs(b_y2 - b_y1) === 1) {
+      //8点和10点方向是同一个马脚
+      blockPointX = b_x1 - 1
+      blockPointY = b_y1
+    } else if ((b_y1 - b_y2) === 2 && Math.abs(b_x1 - b_x2) === 1) {
+      //11点和1点方向是同一个马脚
+      blockPointX = b_x1
+      blockPointY = b_y1 - 1
+    } else if ((b_y2 - b_y1) === 2 && Math.abs(b_x1 - b_x2) === 1) {
+      //5点和7点方向是同一个马脚
+      blockPointX = b_x1
+      blockPointY = b_y1 + 1
+    }
+    return !!(
+      //走的不是直线
+      !isCoordinateLine(b_x1, b_y1, b_x2, b_y2) &&
+      //走的符合规则
+      ((Math.abs(b_x2 - b_x1) + Math.abs(b_y2 - b_y1)) === 3) &&
+      //马脚处没有棋子
+      getPieceByPieceArray(pieceArray, blockPointX, blockPointY) === null &&
+      (targetPiece === null || targetPiece.camp !== camp)
+
+    )
+  }
+}
+
+/**
  * 黑马
  */
-class KnightB extends Piece {
+class KnightB extends Knight {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_m']
@@ -309,7 +408,7 @@ class KnightB extends Piece {
 /**
  * 红马
  */
-class KnightR extends Piece {
+class KnightR extends Knight {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_m']
@@ -317,9 +416,54 @@ class KnightR extends Piece {
 }
 
 /**
+ * 卒/兵
+ */
+class Pawn extends Piece {
+  /**
+   * 验证卒/兵能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const { camp } = this
+    const targetPiece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
+    //先把走了不止一步的排除
+    if (!isOneStep(b_x1, b_y1, b_x2, b_y2)) {
+      return false
+    }
+    let flag = false
+    //棋盘下方的兵/卒
+    if (camp === playerCamp) {
+      //未过河
+      if (b_y1 >= 6) {
+        flag = (b_x1 === b_x2 && b_y2 < b_y1)
+      } else {
+        //过河后
+        flag = (b_y2 <= b_y1)
+      }
+    } else {
+      //棋盘上方的兵/卒
+      //未过河
+      if (b_y1 <= 5) {
+        flag = (b_x1 === b_x2 && b_y2 > b_y1)
+      } else {
+        //过河后
+        flag = (b_y2 >= b_y1)
+      }
+    }
+    return flag && (targetPiece === null || targetPiece.camp !== camp)
+  }
+}
+
+/**
  * 黑卒
  */
-class PawnB extends Piece {
+class PawnB extends Pawn {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_z']
@@ -330,7 +474,7 @@ class PawnB extends Piece {
 /**
  * 红兵
  */
-class PawnR extends Piece {
+class PawnR extends Pawn {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_z']
@@ -338,9 +482,37 @@ class PawnR extends Piece {
 }
 
 /**
+ * 车
+ */
+class Rook extends Piece {
+  /**
+   * 验证车能否从x1,y1行至x2,y2
+   * @param b_x1 棋盘坐标
+   * @param b_y1 棋盘坐标
+   * @param b_x2 棋盘坐标
+   * @param b_y2 棋盘坐标
+   * @param pieceArray 棋子数组
+   * @param playerCamp 玩家阵营
+   *
+   */
+  verify (b_x1, b_y1, b_x2, b_y2, pieceArray, playerCamp = false) {
+    const { camp } = this
+    const targetPiece = getPieceByPieceArray(pieceArray, b_x2, b_y2)
+    return !!(
+      //走的是直线
+      isCoordinateLine(b_x1, b_y1, b_x2, b_y2) &&
+      //原位置与目标位置不存在其他棋子
+      getPieceNum(b_x1, b_y1, b_x2, b_y2, pieceArray) === 0 &&
+      //目标位置不存在棋子或是敌方棋子
+      (targetPiece === null || targetPiece.camp !== camp)
+    )
+  }
+}
+
+/**
  * 黑车
  */
-class RookB extends Piece {
+class RookB extends Rook {
   constructor () {
     super()
     this.pieceImg = pieceImg['b_c']
@@ -351,7 +523,7 @@ class RookB extends Piece {
 /**
  * 红车
  */
-class RookR extends Piece {
+class RookR extends Rook {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_c']
