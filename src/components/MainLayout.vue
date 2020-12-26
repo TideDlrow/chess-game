@@ -20,7 +20,7 @@
 </template>
 
 <script>
-import Board from '@/components/Board2'
+import Board from '@/components/Board'
 
 export default {
   name: 'MainLayout',

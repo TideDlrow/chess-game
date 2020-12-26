@@ -1,5 +1,5 @@
 import { pieceImg } from '@/assets'
-import { getPieceNum, getPieceByPieceArray, isCoordinateLine, isOneStep } from '@/until/content'
+import { getPieceNum, getPieceByPieceArray, isCoordinateLine, isOneStep } from '@/util/content'
 
 class Piece {
   constructor () {
@@ -107,6 +107,7 @@ class Assistants extends Piece {
         return !!_.inRange(b_y, 1, 4)
       }
     }
+    return false
   }
 }
 
@@ -279,6 +280,7 @@ class King extends Piece {
         return !!_.inRange(b_y, 1, 4)
       }
     }
+    return false;
   }
 
   /**

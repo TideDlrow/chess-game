@@ -68,4 +68,25 @@ function isOneStep (b_x1, b_y1, b_x2, b_y2) {
     (Math.abs((b_x1 - b_x2) + (b_y2 - b_y1)) === 1)
 }
 
-export { getPieceNum, getPieceByPieceArray, isCoordinateLine,isOneStep }
+const getToken = () => {
+  let data = localStorage.getItem('userData')
+  if (data) {
+    return JSON.parse(data)['token']
+  }
+  return null
+}
+
+const setToken = (token) => {
+  localStorage.setItem('userData', JSON.stringify({
+    token: token
+  }))
+}
+
+const removeToken = () => {
+  localStorage.removeItem('userData')
+}
+
+export {
+  getPieceNum, getPieceByPieceArray, isCoordinateLine, isOneStep,
+  getToken, setToken, removeToken
+}

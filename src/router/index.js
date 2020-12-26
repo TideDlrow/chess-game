@@ -4,9 +4,7 @@ import VueRouter from 'vue-router'
 Vue.use(VueRouter);
 
 const Login = () => import('@/components/Login');
-const Register = () => import('@/components/Register');
-const Board = ()=>import('@/components/Board');
-const Board2 = ()=>import('@/components/Board2')
+const Board = ()=>import('@/components/Board')
 const MainLayout = ()=>import('@/components/MainLayout');
 
 const routes = [
@@ -17,10 +15,6 @@ const routes = [
   {
     path: '/login',
     component: Login
-  },
-  {
-    path: '/register',
-    component: Register
   },
   {
     path: '/board',
