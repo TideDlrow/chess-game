@@ -280,7 +280,7 @@ class King extends Piece {
         return !!_.inRange(b_y, 1, 4)
       }
     }
-    return false;
+    return false
   }
 
   /**
@@ -310,15 +310,16 @@ class King extends Piece {
     }
 
     return !!(
+      //当与另一个将/帅成直线且中间没有其他棋子时，可以移动
+      (isCoordinateLine(b_x2, b_y2, anotherKingX, anotherKingY)&&
+        getPieceNum(b_x2, b_y2, anotherKingX, anotherKingY, pieceArray) === 0) ||
       //没有超过规定范围
       this.isEffectiveRange(b_x2, b_y2, playerCamp) &&
-      //走的是直线
-      isCoordinateLine(b_x1, b_y1, b_x2, b_y2) &&
       //仅走了一步
       isOneStep(b_x1, b_y1, b_x2, b_y2) &&
-      //目标位置和另一个将/帅之间如果是直线，则要判断是否存在其他棋子，如果不是直线就不用考虑将/帅是否存在棋子
-      (isCoordinateLine(b_x2, b_y2, anotherKingX, anotherKingY) ?
-        getPieceNum(b_x2, b_y2, anotherKingX, anotherKingY, pieceArray) > 0 : true) &&
+      //目标位置和另一个将/帅之间不是直线，或者是直线且中间有其他棋子
+      (!isCoordinateLine(b_x2, b_y2, anotherKingX, anotherKingY) ||
+        getPieceNum(b_x2, b_y2, anotherKingX, anotherKingY, pieceArray) > 0) &&
       //目标位置没有棋子，或为敌方棋子
       (targetPiece === null || targetPiece.camp !== camp)
     )
