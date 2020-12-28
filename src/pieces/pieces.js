@@ -14,6 +14,8 @@ class Piece {
     this.camp = false
     //棋子的外边框图片
     this.outerBorder = null
+    //棋子在FEN串中的表示
+    this.FENChar = ''
   }
 
   /**
@@ -119,6 +121,7 @@ class AssistantsB extends Assistants {
     super()
     this.pieceImg = pieceImg['b_s']
     this.camp = true
+    this.FENChar = 'a'
   }
 }
 
@@ -129,6 +132,7 @@ class AssistantsR extends Assistants {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_s']
+    this.FENChar = 'A'
   }
 }
 
@@ -192,6 +196,7 @@ class BishopB extends Bishop {
     super()
     this.pieceImg = pieceImg['b_x']
     this.camp = true
+    this.FENChar = 'b'
   }
 }
 
@@ -202,6 +207,7 @@ class BishopR extends Bishop {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_x']
+    this.FENChar = 'B'
   }
 }
 
@@ -245,6 +251,7 @@ class CannonB extends Cannon {
     super()
     this.pieceImg = pieceImg['b_p']
     this.camp = true
+    this.FENChar = 'c'
   }
 }
 
@@ -255,6 +262,7 @@ class CannonR extends Cannon {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_p']
+    this.FENChar = 'C'
   }
 }
 
@@ -335,6 +343,7 @@ class KingB extends King {
     super()
     this.pieceImg = pieceImg['b_j']
     this.camp = true
+    this.FENChar = 'k'
   }
 }
 
@@ -345,6 +354,7 @@ class KingR extends King {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_j']
+    this.FENChar = 'K'
   }
 }
 
@@ -405,6 +415,7 @@ class KnightB extends Knight {
     super()
     this.pieceImg = pieceImg['b_m']
     this.camp = true
+    this.FENChar = 'n'
   }
 }
 
@@ -415,6 +426,7 @@ class KnightR extends Knight {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_m']
+    this.FENChar = 'N'
   }
 }
 
@@ -471,6 +483,7 @@ class PawnB extends Pawn {
     super()
     this.pieceImg = pieceImg['b_z']
     this.camp = true
+    this.FENChar = 'p'
   }
 }
 
@@ -481,6 +494,7 @@ class PawnR extends Pawn {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_z']
+    this.FENChar = 'P'
   }
 }
 
@@ -520,6 +534,7 @@ class RookB extends Rook {
     super()
     this.pieceImg = pieceImg['b_c']
     this.camp = true
+    this.FENChar = 'r'
   }
 }
 
@@ -530,6 +545,7 @@ class RookR extends Rook {
   constructor () {
     super()
     this.pieceImg = pieceImg['r_c']
+    this.FENChar = 'R'
   }
 }
 

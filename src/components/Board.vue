@@ -138,11 +138,20 @@ export default {
       this.board.turnRound()
     },
 
+    /**
+     * 隐藏遮罩
+     */
     cancelMask(){
       this.maskVisible = false
     },
+    /**
+     * 显示遮罩
+     */
     showMask(){
       this.maskVisible = true
+    },
+    getFEN(){
+      return this.board.toFEN()
     }
 
   }

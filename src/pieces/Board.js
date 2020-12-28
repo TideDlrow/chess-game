@@ -436,7 +436,7 @@ class Board {
    * @param isByPlayerCamp 是否要根据玩家阵营移动 true表示要 false表示不要
    * @return null表示未移动棋子  {x1,y1,x2,y2}表示棋子从x1,y1移动到了x2,y2。都是棋盘坐标
    */
-  movePieceByBoardCoordinate (x1, y1, x2, y2,isByPlayerCamp=true) {
+  movePieceByBoardCoordinate (x1, y1, x2, y2, isByPlayerCamp = true) {
     const piece = this.getPieceByBoardCoordinate(x1, y1)
     const {
       camp,
@@ -456,7 +456,7 @@ class Board {
     } = this.getPixelByBoardCoordinate(x1, y1)
 
     //如果不能移动到指定位置。棋子移动不符合规则或者当前不是该玩家的回合
-    if ((!piece.verify(x1, y1, x2, y2, this.pieceArray, camp) || currentMoveCamp!==playerCamp) && isByPlayerCamp) {
+    if ((!piece.verify(x1, y1, x2, y2, this.pieceArray, camp) || currentMoveCamp !== playerCamp) && isByPlayerCamp) {
       const piece2 = this.getPieceByBoardCoordinate(x2, y2)
       //如果目标位置存在己方棋子，则选中新棋子，画出外框
       if (piece2 && piece2.camp === playerCamp) {
@@ -485,7 +485,12 @@ class Board {
     //己方移动后轮到对方移动 翻转回合
     this.turnRound()
 
-    return {x1, y1, x2, y2}
+    return {
+      x1,
+      y1,
+      x2,
+      y2
+    }
   }
 
   /**
@@ -542,6 +547,7 @@ class Board {
     ctx.clearRect(0, 0, canvasWidth, canvasHeight)
     this.drawBoard()
   }
+
   /**
    * 重绘棋盘及棋子
    */
@@ -550,8 +556,51 @@ class Board {
     this.drawPieces()
   }
 
-  turnRound(){
+  turnRound () {
     this.currentMoveCamp = !this.currentMoveCamp
+  }
+
+  /**
+   * 将局面用FEN串表示
+   * @return {string | null} FEN串
+   */
+  toFEN () {
+    const {
+      pieceArray,
+      COL_NUM,
+      ROW_NUM
+    } = this
+    if (!pieceArray) {
+      return null
+    }
+    let FENChar = ''
+    //连续空的数量
+    let spaceNum = 0
+    for (let i = 0; i < ROW_NUM; ++i) {
+      for (let j = 0; j < COL_NUM; ++j) {
+        const piece = pieceArray[i][j]
+        if (piece) {
+          if (spaceNum !== 0) {
+            FENChar += spaceNum
+            FENChar += piece.FENChar
+          } else {
+            FENChar += piece.FENChar
+          }
+          spaceNum = 0
+        } else {
+          spaceNum += 1
+        }
+      }
+      if (spaceNum === 0) {
+        FENChar += '/'
+      } else {
+        FENChar += spaceNum + '/'
+      }
+      spaceNum = 0
+    }
+    //去掉最后的一个'/'
+    FENChar = FENChar.slice(0, FENChar.length - 1)
+    return FENChar
   }
 
 }
