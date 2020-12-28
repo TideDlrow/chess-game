@@ -113,6 +113,11 @@ export default {
      * 点击认输按钮
      */
     clickDefeat () {
+      this.PVPWebsocket.close()
+      //重绘棋盘
+      this.getBoard().redrawBoard()
+      //禁用认输按钮、打开对战按钮
+      this.setButtonState(false)
     },
     /**
      * 点击退出登录按钮
@@ -125,6 +130,8 @@ export default {
       this.displayLogin = true
       //给棋盘加上遮罩
       this.getBoard().showMask()
+      //设置按钮状态
+      this.setButtonState(false)
 
     },
     onMessage (message) {
@@ -155,9 +162,7 @@ export default {
       //重绘棋盘
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
-      this.defeatDisabled = true
-      this.PVPDisabled = false
-      this.PVEDisabled = false
+      this.setButtonState(false)
     },
     distributionStage (message) {
       const {
@@ -175,7 +180,7 @@ export default {
       //取消棋盘上的遮罩
       this.getBoard().cancelMask()
       //打开认输按钮
-      this.defeatDisabled = false
+      this.setButtonState(true)
     },
     moveStage (message) {
       //step:'1,1,2,3'表示1,1的棋子移动到2,3
@@ -197,9 +202,7 @@ export default {
       //棋局结束后就重绘棋盘
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
-      this.defeatDisabled = true
-      this.PVPDisabled = false
-      this.PVEDisabled = false
+      this.setButtonState(false)
     },
     /**
      * 棋子移动事件
@@ -208,6 +211,17 @@ export default {
       const token = getToken()
       const step = `${x1},${y1},${x2},${y2}`
       sendMessageByWebsocket(this.PVPWebsocket,`${token};${step}`)
+    },
+    /**
+     * 设置PVP，PVE，认输按钮的状态。
+     * 游戏进行时，PVP、PVE按钮禁用，认输按钮可用
+     * 游戏结束时，PVP、PVE按钮可用，认输按钮禁用
+     * @param {boolean} beginOrEnd  游戏进行中还是已经结束 true表示游戏正在进行中
+     */
+    setButtonState(beginOrEnd){
+      this.defeatDisabled = !beginOrEnd
+      this.PVPDisabled = beginOrEnd
+      this.PVEDisabled = beginOrEnd
     }
   }
 }
