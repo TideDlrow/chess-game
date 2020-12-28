@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 /**
  * 获取从x1,y1到x2,y2的棋子数量，不包括这两个点。必须是一行或是一列
  * @param b_x1
@@ -86,7 +84,21 @@ const removeToken = () => {
   localStorage.removeItem('userData')
 }
 
+const setUserName = () => (username) => {
+  localStorage.setItem('username', username)
+}
+const getUserName = () => {
+  return localStorage.getItem('username')
+}
+const setPlayerCamp = (playerCamp) => {
+  localStorage.setItem('playerCamp', playerCamp)
+}
+const getPlayerCamp = () => {
+  return localStorage.getItem('playerCamp')
+}
+
 export {
   getPieceNum, getPieceByPieceArray, isCoordinateLine, isOneStep,
-  getToken, setToken, removeToken
+  getToken, setToken, removeToken, setUserName, getUserName,
+  setPlayerCamp, getPlayerCamp
 }

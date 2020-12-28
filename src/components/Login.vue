@@ -1,12 +1,12 @@
 <template>
-  <div id="login">
+  <div id="login" class="login">
     <div class="container">
       <div class="login-wrapper">
-        <div class="header">{{ isLogin ? 'Login' : 'Register' }}</div>
+        <div class="header">{{ isLogin ? 'Sign in' : 'Sign up' }}</div>
         <div class="form-wrapper">
           <input v-model="username" type="text" name="username" placeholder="username" class="input-item">
           <input v-model="password" type="password" name="password" placeholder="password" class="input-item">
-          <div class="btn" @click="clickLogin">{{ isLogin ? 'Login' : 'Register' }}</div>
+          <div class="btn" @click="clickLogin">{{ isLogin ? 'Sign in' : 'Sign up' }}</div>
         </div>
         <div class="msg" v-show="isLogin">
           Don`t have account? <a href="#" @click="clickRegister">Sign up</a>
@@ -21,7 +21,7 @@
 
 <script>
 import { login, register } from '@/network/request-api'
-import { setToken } from '@/util/content'
+import { setToken,setUserName } from '@/util/content'
 
 export default {
   name: 'Login',
@@ -70,8 +70,11 @@ export default {
     },
     handleLogin (success, message) {
       if (success) {
-        //
+        //登录/注册 成功
+        const {username}=this
         setToken(message)
+        setUserName(username)
+        this.$emit("success",{token:message,username})
       } else {
         this.$message.error(message)
       }
@@ -95,7 +98,9 @@ export default {
 
 .container {
   height: 100%;
-  background-image: linear-gradient(to right, #fbc2eb, #a6c1ee);
+  /*background-image: linear-gradient(to right, #fbc2eb, #a6c1ee);*/
+  /*background-color: black;*/
+  /*opacity: 0.9;*/
 }
 
 .login-wrapper {

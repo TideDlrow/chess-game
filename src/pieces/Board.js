@@ -14,7 +14,6 @@ import {
   RookR,
   RookB
 } from '@/pieces/pieces'
-import Message from 'element-ui/packages/message/src/main'
 
 class Board {
   constructor () {
@@ -28,12 +27,16 @@ class Board {
     this.canvasWidth = 0
     //canvas的高
     this.canvasHeight = 0
-    //棋子的二维数组。左上角的车的坐标为1,1 马是1,2......
+    //棋子的二维数组。左上角的车的坐标为1,1 马是2,1 象是3,1......
     this.pieceArray = null
     //canvas上下文
     this.ctx = null
-    //玩家阵营。true代表黑方，false代表红方。该属性决定红色或黑色棋子绘制在棋盘下方
+    //true代表黑方，false代表红方。该属性决定红色或黑色棋子绘制在棋盘下方
     this.camp = false
+    //玩家阵营。该属性决定玩家只能移动相同阵营的棋子
+    this.playerCamp = false
+    //当前课移动的玩家阵营
+    this.currentMoveCamp = false
     //被选中棋子的棋盘坐标 未选中时为-1
     this.selectedPieceX = -1
     //被选中棋子的棋盘坐标 未选中时为-1
@@ -384,13 +387,35 @@ class Board {
         pixelY: pixelY2
       } = this.getPixelByBoardCoordinate(boardCoordinateX, boardCoordinateY)
       //先重绘，目的是为了把其他棋子的外框消除
-      this.redraw()
+      this.redrawBoardAndPiece()
       piece.drawOuterBorder(ctx, pixelX2, pixelY2)
     } else {
       this.selectedPieceX = -1
       this.selectedPieceY = -1
       //如果对应的位置不存在棋子，或者点击的不是棋子，则取消所有棋子的外框
-      this.redraw()
+      this.redrawBoardAndPiece()
+    }
+  }
+
+  /**
+   * 根据玩家阵营画棋子外框。若玩家阵营与棋子阵营相同则画出外框，否则取消
+   * @param pixelX
+   * @param pixelY
+   */
+  drawPieceOuterBorderByPlayerCamp (pixelX, pixelY) {
+    const { playerCamp } = this
+    const {
+      boardCoordinateX,
+      boardCoordinateY
+    } = this.getBoardCoordinateByPixel(pixelX, pixelY)
+    const piece = this.getPieceByBoardCoordinate(boardCoordinateX, boardCoordinateY)
+    if (piece && piece.camp === playerCamp) {
+      this.drawPieceOuterBorder(pixelX, pixelY)
+    } else {
+      this.selectedPieceX = -1
+      this.selectedPieceY = -1
+      //如果对应的位置不存在棋子，或者点击的不是棋子，则取消所有棋子的外框
+      this.redrawBoardAndPiece()
     }
   }
 
@@ -408,10 +433,16 @@ class Board {
    * @param y1
    * @param x2
    * @param y2
+   * @param isByPlayerCamp 是否要根据玩家阵营移动 true表示要 false表示不要
+   * @return null表示未移动棋子  {x1,y1,x2,y2}表示棋子从x1,y1移动到了x2,y2。都是棋盘坐标
    */
-  movePieceByBoardCoordinate (x1, y1, x2, y2) {
+  movePieceByBoardCoordinate (x1, y1, x2, y2,isByPlayerCamp=true) {
     const piece = this.getPieceByBoardCoordinate(x1, y1)
-    const { camp: playerCamp } = this
+    const {
+      camp,
+      playerCamp,
+      currentMoveCamp,
+    } = this
     if (piece === null) {
       throw 'piece is not exist'
     }
@@ -424,11 +455,11 @@ class Board {
       pixelY: pixelY2
     } = this.getPixelByBoardCoordinate(x1, y1)
 
-    //如果不能移动到指定位置
-    if (!piece.verify(x1, y1, x2, y2, this.pieceArray, playerCamp)) {
+    //如果不能移动到指定位置。棋子移动不符合规则或者当前不是该玩家的回合
+    if ((!piece.verify(x1, y1, x2, y2, this.pieceArray, camp) || currentMoveCamp!==playerCamp) && isByPlayerCamp) {
       const piece2 = this.getPieceByBoardCoordinate(x2, y2)
-      //如果目标位置存在棋子，则选中新棋子，画出外框
-      if (piece2) {
+      //如果目标位置存在己方棋子，则选中新棋子，画出外框
+      if (piece2 && piece2.camp === playerCamp) {
         const {
           pixelX,
           pixelY
@@ -438,26 +469,30 @@ class Board {
         //不存在棋子，则说明该目标位置不符合移动规则。取消选中
         // Message.error('不能移动到该位置')
         this.cancelSelected()
-        this.redraw()
+        this.redrawBoardAndPiece()
       }
-      return
+      return null
     }
     //先将移动的棋子从棋盘中删除(方便重新绘制)
     this.deletePieceByBoardCoordinate(x1, y1)
-    // this.redraw()
     //TODO 棋子慢慢移动到指定位置
 
     //将棋子重新添加到棋盘中
     this.setPieceByBoardCoordinate(x2, y2, piece)
-    this.redraw()
+    this.redrawBoardAndPiece()
     //棋子移动后取消选择
     this.cancelSelected()
+    //己方移动后轮到对方移动 翻转回合
+    this.turnRound()
+
+    return {x1, y1, x2, y2}
   }
 
   /**
    * 把棋子移动到指定的地方
    * @param targetX 指定像素坐标
    * @param targetY 指定像素坐标
+   * @return null表示未移动棋子  {x1,y1,x2,y2}表示棋子从x1,y1移动到了x2,y2。都是棋盘坐标
    */
   movePieceToPixel (targetX, targetY) {
     if (!this.isSelected()) {
@@ -471,7 +506,7 @@ class Board {
       pixelX,
       pixelY
     } = this.getPixelByBoardCoordinate(selectedPieceX, selectedPieceY)
-    this.movePieceByPixel(pixelX, pixelY, targetX, targetY)
+    return this.movePieceByPixel(pixelX, pixelY, targetX, targetY)
   }
 
   /**
@@ -480,6 +515,7 @@ class Board {
    * @param y1
    * @param x2
    * @param y2
+   * @return null表示未移动棋子  {x1,y1,x2,y2}表示棋子从x1,y1移动到了x2,y2。都是棋盘坐标
    */
   movePieceByPixel (x1, y1, x2, y2) {
     const {
@@ -490,14 +526,14 @@ class Board {
       boardCoordinateX: b_x2,
       boardCoordinateY: b_y2
     } = this.getBoardCoordinateByPixel(x2, y2)
-    this.movePieceByBoardCoordinate(b_x1, b_y1, b_x2, b_y2)
+    return this.movePieceByBoardCoordinate(b_x1, b_y1, b_x2, b_y2)
 
   }
 
   /**
-   * 重绘
+   * 重绘棋盘
    */
-  redraw () {
+  redrawBoard () {
     const ctx = this.getCanvasCTX()
     const {
       canvasHeight,
@@ -505,7 +541,17 @@ class Board {
     } = this
     ctx.clearRect(0, 0, canvasWidth, canvasHeight)
     this.drawBoard()
+  }
+  /**
+   * 重绘棋盘及棋子
+   */
+  redrawBoardAndPiece () {
+    this.redrawBoard()
     this.drawPieces()
+  }
+
+  turnRound(){
+    this.currentMoveCamp = !this.currentMoveCamp
   }
 
 }
