@@ -54,6 +54,7 @@ import Board from '@/components/Board'
 import Login from '@/components/Login'
 import { getUserName, getToken, setToken } from '@/util/content'
 import { PVPWebsocket, sendMessageByWebsocket } from '@/network/websocket'
+import { bestNext } from '@/network/request-api'
 
 export default {
   name: 'MainLayout',
@@ -64,7 +65,7 @@ export default {
   data () {
     return {
       //是否显示登录界面
-      displayLogin: false,
+      displayLogin: true,
       userName: '',
       //玩家阵营
       playerCamp: false,
@@ -82,8 +83,8 @@ export default {
       PVPWebsocket: null,
       //倒计时的定时器
       countDownInterval: null,
-      //PVE时的玩家阵营
-      PVEPlayerCamp: null,
+      //是否处于PVE的状态
+      PVEState: false,
     }
   },
   mounted () {
@@ -138,13 +139,15 @@ export default {
      * 点击认输按钮
      */
     clickDefeat () {
-      const {PVEPlayerCamp} = this
+      const { PVEState } = this
       //PVE的情况下认输
-      if (PVEPlayerCamp!==null){
-        this.PVEPlayerCamp = null
-      }else{
+      if (PVEState) {
+        this.PVEState = false
+      } else {
         this.PVPWebsocket.close()
       }
+      //给棋盘加上遮罩
+      this.getBoard().showMask()
       //重绘棋盘
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
@@ -163,7 +166,8 @@ export default {
       this.getBoard().showMask()
       //设置按钮状态
       this.setButtonState(false)
-
+      //剩下处理步骤和认输一样
+      this.clickDefeat()
     },
     onMessage (message) {
       console.log(message)
@@ -190,6 +194,8 @@ export default {
     onClose (event) {
       const reason = event.reason
       this.$message.error(reason)
+      //给棋盘加上遮罩
+      this.getBoard().showMask()
       //重绘棋盘
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
@@ -238,6 +244,8 @@ export default {
       } else {
         this.$message.error('憨憨 这都能输！！！')
       }
+      //给棋盘加上遮罩
+      this.getBoard().showMask()
       //棋局结束后就重绘棋盘
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
@@ -253,6 +261,15 @@ export default {
       y2
     }) {
       const token = getToken()
+      const {
+        PVEState,
+        playerCamp
+      } = this
+      //如果处于PVE状态
+      if (PVEState) {
+        this.getBestNextStepAndMove()
+        return
+      }
       const step = `${x1},${y1},${x2},${y2}`
       sendMessageByWebsocket(this.PVPWebsocket, `${token};${step}`)
     },
@@ -280,8 +297,8 @@ export default {
     selectPVECamp (PVECamp) {
       console.log(PVECamp)
       this.playerCamp = PVECamp
-      this.PVEPlayerCamp = PVECamp
-      this.getBoard().initBoardConfig()
+      this.PVEState = true
+      this.getBoard().initBoardConfig(false)
       this.getBoard().initPlayerCamp(PVECamp)
       //取消阵营选择框
       this.selectCampVisible = false
@@ -291,9 +308,46 @@ export default {
       this.getBoard().cancelMask()
       //禁用其他对战按钮
       this.setButtonState(true)
-      // const FenChar = this.getBoard().getFEN()
-      // console.log(FenChar)
-    }
+      //如果玩家选择的是黑方
+      if (PVECamp) {
+        //让红方移动。延迟500毫秒，让玩家感觉不会那么突兀
+        setTimeout(function () {
+          this.getBestNextStepAndMove()
+        }, 500)
+      }
+    },
+    /**
+     * 获取下一步，并移动
+     */
+    getBestNextStepAndMove () {
+      const FENString = this.getBoard().getFEN()
+      const { playerCamp } = this
+      const _this = this
+      bestNext(FENString, !playerCamp).then(data => {
+        console.log(data)
+        if (data) {
+          const errorMessage = data["message"];
+          //如果存在message这个属性，则表示出错了
+          if (errorMessage){
+            this.$message.error(errorMessage)
+            return
+          }
+          const [bestNextX1, bestNextY1, bestNextX2, bestNextY2] = data
+          if (bestNextX1 === -1) {
+            this.$message.success('恭喜！！赢了棋局')
+            return
+          }
+          _this.getBoard().movePiece({
+            x1: bestNextX1,
+            y1: bestNextY1,
+            x2: bestNextX2,
+            y2: bestNextY2
+          })
+        } else {
+          this.$message.error('电脑反应不过来了。重来吧！！')
+        }
+      })
+    },
   }
 }
 </script>

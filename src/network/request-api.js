@@ -1,4 +1,5 @@
 import request from '@/network/request-method'
+import { getToken } from '@/util/content'
 
 /**
  * 登录
@@ -17,4 +18,16 @@ export function login (username, password) {
 export function register(username,password){
   const url = 'user/register'
   return request.get(url,{username,password})
+}
+
+/**
+ * 获取最佳的下一步
+ * @param {string} FENString 局面表示的FEN串
+ * @param {boolean} camp 要行动的阵营
+ * @return
+ */
+export function bestNext(FENString,camp){
+  const url = 'PVE/bestNext'
+  const token = getToken()
+  return request.get(url,{FENString,camp},{token})
 }

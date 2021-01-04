@@ -11,15 +11,13 @@ import Board from '@/pieces/Board'
 export default {
   name: 'Board',
   mounted () {
-    // this.observeDom()
+    this.observeDom()
     this.initBoardConfig()
-    // this.redrawBoard()
     this.board.drawBoard()
-    // this.board.drawPieces()
 
   },
   beforeDestroy () {
-    // this.observeDom(true)
+    this.observeDom(true)
   },
   data () {
     return {
@@ -31,15 +29,18 @@ export default {
   },
   methods: {
     resizeCanvasSize () {
-      const {
+      let {
         height,
         width
       } = this.$el.getBoundingClientRect()
       const canvas = this.$el.querySelector('#canvas')
+      width = (width>=800)?width:800
+      height = (height>=900)?height:900
       canvas.width = width
       canvas.height = height
       console.log('改变了大小')
-      this.redrawBoard()
+      // this.redrawBoard()
+      this.redrawBoardAndPiece()
     },
     /**
      * 监听某个dom的大小变化
@@ -58,7 +59,7 @@ export default {
     /**
      * 初始化棋盘配置
      */
-    initBoardConfig () {
+    initBoardConfig (camp=true) {
       this.board = new Board()
       const canvas = this.$el.querySelector('#canvas')
       const {
@@ -71,7 +72,7 @@ export default {
       this.board.canvasWidth = width
       this.board.margin = 50
       //设置为黑方棋子在棋盘下方(因为后端固定是黑方在下方)
-      this.board.camp = true
+      this.board.camp = camp
       this.board.initPiecesLayout()
     },
 

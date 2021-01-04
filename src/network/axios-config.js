@@ -2,6 +2,7 @@ import axios from 'axios';
 import requestInterceptors from "@/network/requestInterceptors";
 //默认路径
 const ConfigBaseURL = 'http://localhost:8818/';
+// const ConfigBaseURL = 'http://192.168.137.1:8818/';
 
 const service = axios.create({
   timeout: 7000,//请求超时时间

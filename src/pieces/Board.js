@@ -437,6 +437,7 @@ class Board {
    * @return null表示未移动棋子  {x1,y1,x2,y2}表示棋子从x1,y1移动到了x2,y2。都是棋盘坐标
    */
   movePieceByBoardCoordinate (x1, y1, x2, y2, isByPlayerCamp = true) {
+    console.log(this.pieceArray)
     const piece = this.getPieceByBoardCoordinate(x1, y1)
     const {
       camp,

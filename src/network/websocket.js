@@ -1,6 +1,7 @@
 import Message from 'element-ui/packages/message/src/main'
 
 const baseUrl = "ws://localhost:8818/socket/"
+// const baseUrl = "ws://192.168.137.1:8818/socket/"
 /**
  *
  * @param {string} token
@@ -16,6 +17,7 @@ export const PVPWebsocket = function (token){
  * @param {string} message
  */
 export const sendMessageByWebsocket = function (websocket,message){
+  console.log(message)
   const state = websocket.readyState;
   switch (state) {
     case WebSocket.CONNECTING:
