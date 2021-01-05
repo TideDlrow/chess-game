@@ -5,7 +5,7 @@
         <div class="header">{{ isLogin ? 'Sign in' : 'Sign up' }}</div>
         <div class="form-wrapper">
           <input v-model="username" type="text" name="username" placeholder="username" class="input-item">
-          <input v-model="password" type="password" name="password" placeholder="password" class="input-item">
+          <input v-model="password" type="password" name="password" placeholder="password" class="input-item" @keydown.enter="clickLogin">
           <div class="btn" @click="clickLogin">{{ isLogin ? 'Sign in' : 'Sign up' }}</div>
         </div>
         <div class="msg" v-show="isLogin">

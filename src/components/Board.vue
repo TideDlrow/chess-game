@@ -11,13 +11,13 @@ import Board from '@/pieces/Board'
 export default {
   name: 'Board',
   mounted () {
-    this.observeDom()
+    // this.observeDom()
     this.initBoardConfig()
     this.board.drawBoard()
 
   },
   beforeDestroy () {
-    this.observeDom(true)
+    // this.observeDom(true)
   },
   data () {
     return {
@@ -25,6 +25,7 @@ export default {
       board: null,
       //遮罩的可见度。
       maskVisible: true,
+
     }
   },
   methods: {
@@ -73,7 +74,7 @@ export default {
       this.board.margin = 50
       //设置为黑方棋子在棋盘下方(因为后端固定是黑方在下方)
       this.board.camp = camp
-      this.board.initPiecesLayout()
+      // this.board.initPiecesLayout()
     },
 
     /**
@@ -82,6 +83,7 @@ export default {
      */
     initPlayerCamp(playerCamp){
       this.board.playerCamp = playerCamp
+      this.board.initPiecesLayout()
     },
     /**
      * 重绘棋盘
@@ -153,6 +155,9 @@ export default {
     },
     getFEN(){
       return this.board.toFEN()
+    },
+    removeAllPiece(){
+      this.board.removeAllPiece();
     }
 
   }

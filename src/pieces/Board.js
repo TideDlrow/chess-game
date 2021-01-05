@@ -329,6 +329,24 @@ class Board {
   }
 
   /**
+   * 移除所有棋子
+   */
+  removeAllPiece(){
+    this.pieceArray = [
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+      [null, null, null, null, null, null, null, null, null],
+    ]
+  }
+
+  /**
    * 根据PieceArray把棋子绘制到棋盘上
    */
   drawPieces () {

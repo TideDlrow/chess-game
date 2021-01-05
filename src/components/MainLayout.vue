@@ -150,6 +150,8 @@ export default {
       this.getBoard().showMask()
       //重绘棋盘
       this.getBoard().redrawBoard()
+      //移除棋子
+      this.getBoard().removeAllPiece()
       //禁用认输按钮、打开对战按钮
       this.setButtonState(false)
     },
@@ -198,6 +200,7 @@ export default {
       this.getBoard().showMask()
       //重绘棋盘
       this.getBoard().redrawBoard()
+      this.getBoard().removeAllPiece()
       //禁用认输按钮、打开对战按钮
       this.setButtonState(false)
     },
@@ -250,6 +253,8 @@ export default {
       this.getBoard().redrawBoard()
       //禁用认输按钮、打开对战按钮
       this.setButtonState(false)
+      //移除棋子
+      this.getBoard().removeAllPiece()
     },
     /**
      * 棋子移动事件
@@ -308,11 +313,12 @@ export default {
       this.getBoard().cancelMask()
       //禁用其他对战按钮
       this.setButtonState(true)
+      const _this = this
       //如果玩家选择的是黑方
       if (PVECamp) {
         //让红方移动。延迟500毫秒，让玩家感觉不会那么突兀
         setTimeout(function () {
-          this.getBestNextStepAndMove()
+          _this.getBestNextStepAndMove()
         }, 500)
       }
     },
@@ -329,12 +335,20 @@ export default {
           const errorMessage = data["message"];
           //如果存在message这个属性，则表示出错了
           if (errorMessage){
-            this.$message.error(errorMessage)
+            _this.$message.error(errorMessage)
             return
           }
           const [bestNextX1, bestNextY1, bestNextX2, bestNextY2] = data
           if (bestNextX1 === -1) {
-            this.$message.success('恭喜！！赢了棋局')
+            _this.$message.success('恭喜！！赢了棋局')
+            //给棋盘加上遮罩
+            _this.getBoard().showMask()
+            //重绘棋盘
+            _this.getBoard().redrawBoard()
+            //移除棋子
+            _this.getBoard().removeAllPiece()
+            //禁用认输按钮、打开对战按钮
+            _this.setButtonState(false)
             return
           }
           _this.getBoard().movePiece({
@@ -344,7 +358,7 @@ export default {
             y2: bestNextY2
           })
         } else {
-          this.$message.error('电脑反应不过来了。重来吧！！')
+          _this.$message.error('电脑反应不过来了。重来吧！！')
         }
       })
     },
